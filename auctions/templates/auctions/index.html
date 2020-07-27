@@ -3,5 +3,57 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    <ul>
+        {% for listing in listings %}
+            <li>
+                id:{{ listing.id }} - {{ listing.title }} - {{ listing.category }}
+                <br>
+                {{ listing.description }}
+                <br>
+                {{ listing.user }} || {{ listing.listed_datetime}}
+                <br>
+                -------------------------
+                <br>
+            </li>
+        {% endfor %}
+    </ul>
+
+      <h2> Users </h2>
+
+      <ul>
+        {% for user in users %}
+          <li>
+              id:{{ user.id }} - {{ user.username }}
+              <br>
+              {{ user.email }}
+          </li>
+        {% endfor %}
+      </ul>
+
+      <h2> Comments </h2>
+
+      <ul>
+        {% for comment in comments %}
+          <li>
+            id: {{ comment.id }} - {{ comment.listing }} - {{ comment.user }}
+            <br>
+            {{ comment.text }}
+            <br>
+            {{ comment.comment_datetime}}
+            <br>
+          </li>
+        {% endfor %}
+        <br>
+      </ul>
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      <h2> Bids </h2>
+        <ul>
+          {% for bid in bids %}
+            <li>
+                id: {{ bid.id }} - {{ bid.user }} <br>
+                {{ bid.listing }}<br>
+                ${{ bid.bid }}
+            </li>
+          {% endfor %}
+        </ul>
 {% endblock %}
