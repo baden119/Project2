@@ -1,3 +1,5 @@
+import datetime
+from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -6,6 +8,12 @@ from django.urls import reverse
 
 from .models import User, Listing, Comment, Bid
 
+class NewListingForm(forms.Form):
+    title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title'}))
+    description = forms.CharField(label="Description", widget=forms.Textarea(attrs={'placeholder': 'Description'}))
+    starting_bid = forms.DecimalField(max_digits=6, decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '0.00'}))
+    image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional'}))
+    category = forms.CharField(label="Category", max_length=2, widget=forms.Select(choices = Listing.CATEGORY_CHOICES),)
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -66,3 +74,27 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+def new_listing(request):
+    if request.method == "POST":
+        # Validate form data.
+        new_listing = Listing()
+        new_listing_data = NewListingForm(request.POST)
+        if new_listing_data.is_valid():
+            new_listing.title = new_listing_data.cleaned_data["title"]
+            new_listing.description = new_listing_data.cleaned_data["description"]
+            new_listing.starting_bid = new_listing_data.cleaned_data["starting_bid"]
+            new_listing.image_URL = new_listing_data.cleaned_data["image_URL"]
+            new_listing.category = new_listing_data.cleaned_data["category"]
+            new_listing.listed_datetime = datetime.datetime.now()
+            new_listing.user = request.user
+            new_listing.save()
+
+        # Should I put an else statement here incase form data isn't valid?
+
+        return HttpResponseRedirect(reverse("index"))
+
+    else:
+        return render(request, "auctions/new_listing.html",{
+        "NewListingForm" : NewListingForm()
+        })

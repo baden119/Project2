@@ -16,7 +16,7 @@ class Listing(models.Model):
     GIFTS = 'GF'
     AUTO = 'AT'
     OTHER = 'OT'
-    CATAGORY_CHOICES = [
+    CATEGORY_CHOICES = [
         (FASHION, 'Fashion, Clothing & Accessories'),
         (HEALTH, 'Health & Beauty'),
         (TOYS, 'Toys & Baby Equipment'),
@@ -36,7 +36,7 @@ class Listing(models.Model):
     image_URL = models.URLField(max_length=200, blank=True)
     category = models.CharField(
         max_length=2,
-        choices=CATAGORY_CHOICES,
+        choices=CATEGORY_CHOICES,
         default = OTHER,
     )
 
