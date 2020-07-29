@@ -9,11 +9,11 @@ from django.urls import reverse
 from .models import User, Listing, Comment, Bid
 
 class NewListingForm(forms.Form):
-    title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title'}))
-    description = forms.CharField(label="Description", widget=forms.Textarea(attrs={'placeholder': 'Description'}))
-    starting_bid = forms.DecimalField(max_digits=6, decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '0.00'}))
-    image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional'}))
-    category = forms.CharField(label="Category", max_length=2, widget=forms.Select(choices = Listing.CATEGORY_CHOICES),)
+    title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'class': 'form-control'}))
+    category = forms.CharField(label="Category", max_length=2, widget=forms.Select(choices = Listing.CATEGORY_CHOICES, attrs={'class': 'form-control'}))
+    description = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Description', 'class': 'form-control'}))
+    starting_bid = forms.DecimalField(max_digits=6, decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '0.00', 'class': 'form-control'}))
+    image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional', 'class': 'form-control'}))
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -88,6 +88,10 @@ def new_listing(request):
             new_listing.category = new_listing_data.cleaned_data["category"]
             new_listing.listed_datetime = datetime.datetime.now()
             new_listing.user = request.user
+
+            if len(new_listing.image_URL) == 0:
+                new_listing.image_URL = "https://thumbs.dreamstime.com/b/no-image-available-icon-photo-camera-flat-vector-illustration-132483141.jpg"
+
             new_listing.save()
 
         # Should I put an else statement here incase form data isn't valid?
