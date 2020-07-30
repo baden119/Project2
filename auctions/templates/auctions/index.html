@@ -11,7 +11,7 @@
             <div class="card-body">
               <img class="card-img-top" src="{{ listing.image_URL }}" alt="{{ listing.title }}" style="max-height: 250px; max-width: 250px">
               <p class="card-text">{{ listing.description }}</p>
-              <a href="#" class="btn btn-primary">See Listing</a>
+              <a href="/listing/{{ listing.id }}" class="btn btn-primary">See Listing</a>
             </div>
             <div class="card-footer">{{ listing.listed_datetime }}</div>
           </div>

@@ -1,0 +1,18 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+  <h1>{{ listing.title }}</h1>
+  <h4>{{ listing.category }}</h4>
+  <h3>{{ listing.description }}</h3>
+  <img src="{{ listing.image_URL }}" alt="{{ listing.title }}">
+
+  <h4>{{ listing.starting_bid }}</h4>
+
+  <h4>{{ listing.listed_datetime }}</h4>
+  <h4>{{ listing.user.first_name }} {{ listing.user.last_name }}</h4>
+
+  <a class="btn btn-primary" href="/add_to_watchlist/{{ listing.id }}">Add to Watchlist</a>
+
+</div>
+{% endblock %}

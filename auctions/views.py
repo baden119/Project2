@@ -3,10 +3,10 @@ from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .models import User, Listing, Comment, Bid
+from .models import User, Listing, Comment, Bid, Profile
 
 class NewListingForm(forms.Form):
     title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'class': 'form-control'}))
@@ -64,7 +64,7 @@ def register(request):
 
         # Attempt to create new user
         try:
-            user = User.objects.create_user(username, email, password)
+            user = User.objects.create_user(username, email, password, first_name=request.POST["first_name"], last_name=request.POST["last_name"])
             user.save()
         except IntegrityError:
             return render(request, "auctions/register.html", {
@@ -102,3 +102,31 @@ def new_listing(request):
         return render(request, "auctions/new_listing.html",{
         "NewListingForm" : NewListingForm()
         })
+
+def display_listing(request, listing_id):
+    # Get listing data
+    listing = Listing.objects.get(pk=listing_id)
+
+    # Get readable name for category of listing.
+    # There must be a better way of doing this but I dont know it.
+    for category_list in Listing.CATEGORY_CHOICES:
+        if category_list[0] == listing.category:
+            listing.category = category_list[1]
+
+    return render(request, "auctions/display_listing.html", {
+        "listing": listing
+    })
+
+def add_to_watchlist(request, listing_id):
+
+    print(listing_id)
+    print("ADD TO WATCHLIST!")
+
+    # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
+    # add listing_id to
+    # user.profile.watchlist
+    # hopefully find a simple way of updating rather than overwriting watchlist
+    # also add alert to display_listing reporting addition.
+
+
+    return redirect("display_listing", listing_id = listing_id)
