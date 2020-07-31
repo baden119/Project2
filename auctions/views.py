@@ -2,10 +2,12 @@ import datetime
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
+
 
 from .models import User, Listing, Comment, Bid, Watchlist
 
@@ -102,8 +104,15 @@ def new_listing(request):
         })
 
 def display_listing(request, listing_id):
-    # Get listing data
+    # Get listing and watchlist data
     listing = Listing.objects.get(pk=listing_id)
+    watchlist_data = request.user.watchlist.all()
+
+    # Convery watchlist listing id's to a list to send to html
+    # This is used to display "add to" or "remove from" watchlist button 
+    watchlist = []
+    for item in watchlist_data:
+        watchlist.append(item.listing.id)
 
     # Get readable name for category of listing.
     # There must be a better way of doing this but I dont know it.
@@ -112,7 +121,8 @@ def display_listing(request, listing_id):
             listing.category = category_list[1]
 
     return render(request, "auctions/display_listing.html", {
-        "listing": listing
+        "listing": listing,
+        "watchlist": watchlist
     })
 
 def add_to_watchlist(request, listing_id):
@@ -126,7 +136,7 @@ def add_to_watchlist(request, listing_id):
     try:
         new_watchlist_item.save()
     except IntegrityError:
-        messages.error(request, "Item Already in Watchlist")
+        message = "Item Already in Watchlist"
         print(request.user.watchlist.all())
         return redirect("display_listing", listing_id = listing_id)
 
