@@ -7,22 +7,6 @@ from django.dispatch import receiver
 class User(AbstractUser):
     pass
 
-class Profile(models.Model):
-    # Technique for extending Django User Model taken from
-    # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    watchlist = models.SmallIntegerField(null=True, blank=True)
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
-
-
 class Listing(models.Model):
     #  category syntax taken from https://docs.djangoproject.com/en/3.0/ref/models/fields/
     FASHION = 'FN'
@@ -79,3 +63,13 @@ class Bid(models.Model):
 
     def __str__(self):
         return f"{self.listing} - {self.user} - ${self.bid}"
+
+class Watchlist(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchlist")
+
+    def __str__(self):
+        return f" {self.user} - {self.listing}"
+
+    class Meta:
+        unique_together = ("user", "listing")

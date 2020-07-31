@@ -1,12 +1,13 @@
 import datetime
 from django import forms
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .models import User, Listing, Comment, Bid, Profile
+from .models import User, Listing, Comment, Bid, Watchlist
 
 class NewListingForm(forms.Form):
     title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'class': 'form-control'}))
@@ -22,7 +23,6 @@ def index(request):
         "comments": Comment.objects.all(),
         "bids": Bid.objects.all()
     })
-
 
 def login_view(request):
     if request.method == "POST":
@@ -43,11 +43,9 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
-
 
 def register(request):
     if request.method == "POST":
@@ -119,14 +117,25 @@ def display_listing(request, listing_id):
 
 def add_to_watchlist(request, listing_id):
 
-    print(listing_id)
-    print("ADD TO WATCHLIST!")
+    new_watchlist_item = Watchlist()
 
-    # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
-    # add listing_id to
-    # user.profile.watchlist
-    # hopefully find a simple way of updating rather than overwriting watchlist
-    # also add alert to display_listing reporting addition.
+    new_watchlist_item.user = request.user
+
+    new_watchlist_item.listing = Listing.objects.get(pk=listing_id)
+
+    try:
+        new_watchlist_item.save()
+    except IntegrityError:
+        messages.error(request, "Item Already in Watchlist")
+        print(request.user.watchlist.all())
+        return redirect("display_listing", listing_id = listing_id)
+
+    print(request.user.watchlist.all())
+
+# need a way of communicating to the user when an item they are
+# trying to add to watchlist is already on there? maybe not
+# maybe just redirecting them to a display of watchlist items will
+# suffice? in any case need to add remove from watchlist functionality.
 
 
     return redirect("display_listing", listing_id = listing_id)
