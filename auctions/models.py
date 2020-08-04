@@ -57,8 +57,8 @@ class Comment(models.Model):
 
 class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    comment_datetime = models.DateTimeField('date of bid')
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bid")
+    bid_datetime = models.DateTimeField('date of bid')
     bid = models.DecimalField(max_digits=6, decimal_places=2)
 
     def __str__(self):

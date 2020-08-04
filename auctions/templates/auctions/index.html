@@ -11,7 +11,14 @@
             <div class="card-body">
               <img class="card-img-top" src="{{ listing.image_URL }}" alt="{{ listing.title }}" style="max-height: 250px; max-width: 250px">
               <p class="card-text">{{ listing.description }}</p>
-              <a href="/listing/{{ listing.id }}" class="btn btn-primary">See Listing</a>
+              <a class="btn btn-primary" href="{% url 'display_listing' listing.id %}" >See Listing</a>
+              {% if watchlist %}
+                {% if listing.id in watchlist %}
+                <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
+                {% else %}
+                <a class="btn btn-primary" href="{% url 'add_to_watchlist' listing.id %}">Add to Watchlist</a>
+                {% endif %}
+              {% endif %}
             </div>
             <div class="card-footer">{{ listing.listed_datetime }}</div>
           </div>
@@ -19,5 +26,3 @@
       </div>
     </div>
 {% endblock %}
-  <!-- <div class="card-deck"> -->
-          <div class="card" style="width:700px; height:400px; overflow:scroll; margin: auto">

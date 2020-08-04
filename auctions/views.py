@@ -19,11 +19,22 @@ class NewListingForm(forms.Form):
     image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional', 'class': 'form-control'}))
 
 def index(request):
+    # Convert watchlist listing id's to a list to send to html
+    # This is used to display "add to" or "remove from" watchlist button
+    try:
+        watchlist_data = request.user.watchlist.all()
+    except AttributeError:
+            return render(request, "auctions/index.html", {
+                "listings": Listing.objects.all()
+            })
+
+    watchlist = []
+    for item in watchlist_data:
+        watchlist.append(item.listing.id)
+
     return render(request, "auctions/index.html", {
         "listings": Listing.objects.all(),
-        "users": User.objects.all(),
-        "comments": Comment.objects.all(),
-        "bids": Bid.objects.all()
+        "watchlist": watchlist,
     })
 
 def login_view(request):
@@ -88,14 +99,10 @@ def new_listing(request):
             new_listing.category = new_listing_data.cleaned_data["category"]
             new_listing.listed_datetime = datetime.datetime.now()
             new_listing.user = request.user
-
             if len(new_listing.image_URL) == 0:
                 new_listing.image_URL = "https://thumbs.dreamstime.com/b/no-image-available-icon-photo-camera-flat-vector-illustration-132483141.jpg"
-
             new_listing.save()
-
         # Should I put an else statement here incase form data isn't valid?
-
         return HttpResponseRedirect(reverse("index"))
 
     else:
@@ -104,15 +111,14 @@ def new_listing(request):
         })
 
 def display_listing(request, listing_id):
-    # Get listing and watchlist data
+    # Get listing and bidding data
     listing = Listing.objects.get(pk=listing_id)
-    watchlist_data = request.user.watchlist.all()
-
-    # Convery watchlist listing id's to a list to send to html
-    # This is used to display "add to" or "remove from" watchlist button 
-    watchlist = []
-    for item in watchlist_data:
-        watchlist.append(item.listing.id)
+    bid_info = Bid.objects.filter(listing=listing_id)
+    # If theres no bids, make starting bid ammount the highest current bid.
+    if not bid_info:
+        highest_bid = listing.starting_bid
+    else:
+        highest_bid = (bid_info.last().bid)
 
     # Get readable name for category of listing.
     # There must be a better way of doing this but I dont know it.
@@ -120,32 +126,78 @@ def display_listing(request, listing_id):
         if category_list[0] == listing.category:
             listing.category = category_list[1]
 
+    # Convert watchlist listing id's to a list to send to html
+    # This is used to display "add to" or "remove from" watchlist button
+
+    try:
+        watchlist_data = request.user.watchlist.all()
+    except AttributeError:
+            return render(request, "auctions/display_listing.html", {
+                "listing": listing,
+                "highest_bid": highest_bid,
+                "bid_info": bid_info
+            })
+
+    watchlist = []
+    for item in watchlist_data:
+        watchlist.append(item.listing.id)
+
+
     return render(request, "auctions/display_listing.html", {
         "listing": listing,
-        "watchlist": watchlist
+        "watchlist": watchlist,
+        "highest_bid": highest_bid,
+        "bid_info": bid_info
     })
 
 def add_to_watchlist(request, listing_id):
-
+    # Add item to watchlist.
     new_watchlist_item = Watchlist()
-
     new_watchlist_item.user = request.user
-
     new_watchlist_item.listing = Listing.objects.get(pk=listing_id)
 
+    # Make sure item isn't already in user's watchlist
     try:
         new_watchlist_item.save()
     except IntegrityError:
         message = "Item Already in Watchlist"
-        print(request.user.watchlist.all())
         return redirect("display_listing", listing_id = listing_id)
 
-    print(request.user.watchlist.all())
+    # ADD A SUCCESS MESSAGE TO USER HERE
+    return redirect("index")
 
-# need a way of communicating to the user when an item they are
-# trying to add to watchlist is already on there? maybe not
-# maybe just redirecting them to a display of watchlist items will
-# suffice? in any case need to add remove from watchlist functionality.
+def remove_from_watchlist(request, listing_id):
+    # Remove item from watchlist.
+    request.user.watchlist.get(listing_id = listing_id).delete()
 
+    return redirect("index")
 
-    return redirect("display_listing", listing_id = listing_id)
+def display_watchlist(request):
+    # Get watchlist info for current user.
+    watchlist_info = request.user.watchlist.all()
+
+    # Watchlist is a relational model, containing only foreign keys (the users id and the listing id)
+    # A new list has to be created with the actual listing information to be displayed in html
+    # (I think, there might be a better way to do this, i dont know.)
+    watchlist = []
+    for item in watchlist_info:
+        watchlist.append(Listing.objects.get(pk=item.listing_id))
+
+    return render(request, "auctions/display_watchlist.html", {
+    "watchlist" : watchlist
+    })
+
+def bid(request, listing_id):
+    if request.method == "POST":
+
+        new_bid = Bid()
+        new_bid.user = request.user
+        new_bid.listing = Listing.objects.get(pk=listing_id)
+        new_bid.bid_datetime = datetime.datetime.now()
+        new_bid.bid = request.POST["bid"]
+        new_bid.save()
+        print(new_bid)
+        print("bid saved")
+
+        # return redirect("index")
+        return HttpResponseRedirect(reverse("display_listing", args=(listing_id,)))

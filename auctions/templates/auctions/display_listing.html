@@ -7,15 +7,32 @@
   <h3>{{ listing.description }}</h3>
   <img src="{{ listing.image_URL }}" alt="{{ listing.title }}">
 
-  <h4>{{ listing.starting_bid }}</h4>
-
-  <h4>{{ listing.listed_datetime }}</h4>
-  <h4>{{ listing.user.first_name }} {{ listing.user.last_name }}</h4>
-
-  {% if listing.id in watchlist %}
-  <a class="btn btn-warning" href="#">Remove from Watchlist</a>
-  {% else %}
-  <a class="btn btn-primary" href="/add_to_watchlist/{{ listing.id }}">Add to Watchlist</a>
+  <h4>Starting bid: ${{ listing.starting_bid }}</h4>
+  <h4>Current Leading Bid: ${{ highest_bid }}</h4>
+  {% if watchlist %}
+    <form action="{% url 'bid' listing.id %}" method="post">
+      {% csrf_token %}
+      <input type="number" min="{{ highest_bid }}" value="{{ highest_bid }}" step="0.05" name="bid">
+      <input type="submit" value="Place Bid">
+    </form>
+  {% endif %}
+  {% if bid_info %}
+    <h5>Bids made:</h5>
+    {% for bid in bid_info %}
+      <small>${{ bid.bid }}, {{ bid.user.first_name }} {{bid.user.last_name}}, {{bid.bid_datetime}} </small>
+      <br>
+    {% endfor %}
+  {% endif %}
+  <h5>Listed by {{ listing.user.first_name }} {{ listing.user.last_name }}</h5>
+  <h5>{{ listing.listed_datetime }}</h5>
+  {% if watchlist %}
+    {% if listing.id in watchlist %}
+        <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
+      {% else %}
+        <a class="btn btn-primary" href="{% url 'add_to_watchlist' listing.id %}">Add to Watchlist</a>
+      {% endif %}
+    {% else %}
+    <a class="btn btn-primary" href="{% url 'login' %}">Log In to Place a Bid or Comment</a>
   {% endif %}
 </div>
 {% endblock %}

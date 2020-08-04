@@ -1,0 +1,24 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<div class="container">
+  <h2>Your Watchlist</h2>
+  <div class="card-columns">
+
+    {% for item in watchlist %}
+    <div class="card">
+        <div class="card-header">{{ item.title }}</div>
+        <div class="card-body">
+          <img class="card-img-top" src="{{ item.image_URL }}" alt="{{ item.title }}" style="max-height: 250px; max-width: 250px">
+          <p class="card-text">{{ item.description }}</p>
+          <a class="btn btn-primary" href="{% url 'display_listing' item.id %}" >See Listing</a>
+          <a class="btn btn-warning" href="{% url 'remove_from_watchlist' item.id %}">Remove from Watchlist</a>
+        </div>
+        <div class="card-footer">{{ item.listed_datetime }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
