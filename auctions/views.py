@@ -8,7 +8,6 @@ from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseRedire
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-
 from .models import User, Listing, Comment, Bid, Watchlist
 
 class NewListingForm(forms.Form):
@@ -18,23 +17,22 @@ class NewListingForm(forms.Form):
     starting_bid = forms.DecimalField(max_digits=6, decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '0.00', 'class': 'form-control'}))
     image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional', 'class': 'form-control'}))
 
-def index(request):
-    # Convert watchlist listing id's to a list to send to html
-    # This is used to display "add to" or "remove from" watchlist button
-    try:
-        watchlist_data = request.user.watchlist.all()
-    except AttributeError:
-            return render(request, "auctions/index.html", {
-                "listings": Listing.objects.all()
-            })
+class NewCommentForm(forms.Form):
+    comment = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Comment...', 'class': 'form-control'}))
 
+def index(request):
+    # If a user is logged in, create a list of watchlist item id's to send to html.
+    # This is used to display either an "add to" or a "remove from" watchlist button.
+    # If no user is logged in, no watchlist options will be displayed.
     watchlist = []
-    for item in watchlist_data:
-        watchlist.append(item.listing.id)
+    if request.user.is_authenticated:
+        watchlist_data = request.user.watchlist.all()
+        for item in watchlist_data:
+            watchlist.append(item.listing.id)
 
     return render(request, "auctions/index.html", {
         "listings": Listing.objects.all(),
-        "watchlist": watchlist,
+        "watchlist": watchlist
     })
 
 def login_view(request):
@@ -111,44 +109,62 @@ def new_listing(request):
         })
 
 def display_listing(request, listing_id):
-    # Get listing and bidding data
+    # Get listing and bidding data.
     listing = Listing.objects.get(pk=listing_id)
     bid_info = Bid.objects.filter(listing=listing_id)
-    # If theres no bids, make starting bid ammount the highest current bid.
-    if not bid_info:
-        highest_bid = listing.starting_bid
-    else:
+    comments = Comment.objects.filter(listing=listing_id)
+
+    # Determine the highest current bid. Use starting bid if there are no bids.
+    if bid_info:
         highest_bid = (bid_info.last().bid)
+    else:
+        highest_bid = listing.starting_bid
 
     # Get readable name for category of listing.
-    # There must be a better way of doing this but I dont know it.
+    # There must be a better way of doing this, but I dont know it.
     for category_list in Listing.CATEGORY_CHOICES:
         if category_list[0] == listing.category:
             listing.category = category_list[1]
 
-    # Convert watchlist listing id's to a list to send to html
-    # This is used to display "add to" or "remove from" watchlist button
-
-    try:
+    # If a user is logged in, create a list watchlist item id's to send to html.
+    # This is used to display either an "add to" or a "remove from" watchlist button.
+    # If no user is logged in, no watchlist or bidding options will be displayed.
+    watchlist = []
+    owner = False
+    if request.user.is_authenticated:
         watchlist_data = request.user.watchlist.all()
-    except AttributeError:
-            return render(request, "auctions/display_listing.html", {
-                "listing": listing,
-                "highest_bid": highest_bid,
-                "bid_info": bid_info
+        for item in watchlist_data:
+            watchlist.append(item.listing.id)
+
+        # Checking if logged-in user is also the owner of current listing.
+        # If so, this allows an option to close the listing.
+        if request.user.id == listing.user.id:
+            owner = True
+
+    if listing.open is True:
+        return render(request, "auctions/display_open_listing.html", {
+            "listing": listing,
+            "watchlist": watchlist,
+            "highest_bid": highest_bid,
+            "bid_info": bid_info,
+            "NewCommentForm": NewCommentForm(),
+            "comments": comments,
+            "owner": owner
             })
 
-    watchlist = []
-    for item in watchlist_data:
-        watchlist.append(item.listing.id)
+    elif listing.open is False:
 
-
-    return render(request, "auctions/display_listing.html", {
-        "listing": listing,
-        "watchlist": watchlist,
-        "highest_bid": highest_bid,
-        "bid_info": bid_info
-    })
+        # Determine and communicate if current user is auctions winner.
+        winner = False
+        if bid_info.last().user_id == request.user.id:
+            winner = True
+        return render(request, "auctions/display_closed_listing.html",{
+            "listing": listing,
+            "watchlist": watchlist,
+            "highest_bid": highest_bid,
+            "bid_info": bid_info,
+            "winner": winner,
+        })
 
 def add_to_watchlist(request, listing_id):
     # Add item to watchlist.
@@ -156,20 +172,27 @@ def add_to_watchlist(request, listing_id):
     new_watchlist_item.user = request.user
     new_watchlist_item.listing = Listing.objects.get(pk=listing_id)
 
-    # Make sure item isn't already in user's watchlist
+    # Make sure item isn't already in user's watchlist.
+    # As far as i can see theres no need for this any more, but you never know.
     try:
         new_watchlist_item.save()
     except IntegrityError:
         message = "Item Already in Watchlist"
         return redirect("display_listing", listing_id = listing_id)
 
-    # ADD A SUCCESS MESSAGE TO USER HERE
+    # Here I would ideally like to redirect the user back where they came from,
+    # so if they were viewing this particular listing it would take them back to display_listing,
+    # but if they were viewing all listings it would take them to index, but i cant
+    # figure out how to do this.
     return redirect("index")
 
 def remove_from_watchlist(request, listing_id):
-    # Remove item from watchlist.
+    # Remove item from a users watchlist.
     request.user.watchlist.get(listing_id = listing_id).delete()
-
+    # Here I would ideally like to redirect the user back where they came from,
+    # so if they were viewing this particular listing it would take them back to display_listing,
+    # but if they were viewing all listings it would take them to index, but i cant
+    # figure out how to do this.
     return redirect("index")
 
 def display_watchlist(request):
@@ -178,7 +201,7 @@ def display_watchlist(request):
 
     # Watchlist is a relational model, containing only foreign keys (the users id and the listing id)
     # A new list has to be created with the actual listing information to be displayed in html
-    # (I think, there might be a better way to do this, i dont know.)
+    # (I think there might be a better way to do this, i dont know.)
     watchlist = []
     for item in watchlist_info:
         watchlist.append(Listing.objects.get(pk=item.listing_id))
@@ -188,16 +211,33 @@ def display_watchlist(request):
     })
 
 def bid(request, listing_id):
+    # Record any item bids in the Bid model of the database.
     if request.method == "POST":
-
         new_bid = Bid()
         new_bid.user = request.user
         new_bid.listing = Listing.objects.get(pk=listing_id)
         new_bid.bid_datetime = datetime.datetime.now()
         new_bid.bid = request.POST["bid"]
         new_bid.save()
-        print(new_bid)
-        print("bid saved")
+        return HttpResponseRedirect(reverse("display_listing", args=(listing_id,)))
 
-        # return redirect("index")
+def close_listing(request, listing_id):
+    # Close a listing by changing its open field to False.
+    listing = Listing.objects.get(pk=listing_id)
+    listing.open = False
+    listing.save()
+    return HttpResponseRedirect(reverse("display_listing", args=(listing_id,)))
+
+def comment(request, listing_id):
+    if request.method == "POST":
+        new_comment = Comment()
+        new_comment_data = NewCommentForm(request.POST)
+
+        if new_comment_data.is_valid():
+            new_comment.user = request.user
+            new_comment.listing = Listing.objects.get(pk=listing_id)
+            new_comment.text = new_comment_data.cleaned_data["comment"]
+            new_comment.comment_datetime = datetime.datetime.now()
+            new_comment.save()
+
         return HttpResponseRedirect(reverse("display_listing", args=(listing_id,)))

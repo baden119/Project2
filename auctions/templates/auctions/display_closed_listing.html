@@ -1,0 +1,24 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+  <h1> LISTING CLOSED!!!!!! </h1> <br><br>
+  {% if winner %}
+    <h1> CONGRATULATIONS {{ request.user.first_name }}, YOU WON THE AUCTION! </h1><br><br>
+  {% endif %}
+
+  {% include 'auctions/partials/_listing_info.html' %}
+
+  <h4>Winning Bid: ${{ highest_bid }}</h4>
+
+  {% include 'auctions/partials/_bids_and_comments.html' %}
+
+  {% include 'auctions/partials/_lister_info.html' %}
+
+  {% if request.user.is_authenticated %}
+    {% if listing.id in watchlist %}
+        <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

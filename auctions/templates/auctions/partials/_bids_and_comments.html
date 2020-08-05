@@ -1,0 +1,12 @@
+{% if bid_info %}
+  <h5>Bids made:</h5>
+  {% for bid in bid_info %}
+    <small>${{ bid.bid }}, {{ bid.user.first_name }} {{bid.user.last_name}}, {{bid.bid_datetime}} </small>
+    <br>
+  {% endfor %}
+{% endif %}
+<h3> Comments </h3>
+  {% for comment in comments %}
+  <p>{{ comment.text }}</p>
+  <small> by {{ comment.user.first_name }} {{comment.user.last_name}}, {{comment.comment_datetime}}</small>
+  {% endfor %}

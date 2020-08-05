@@ -12,7 +12,7 @@
               <img class="card-img-top" src="{{ listing.image_URL }}" alt="{{ listing.title }}" style="max-height: 250px; max-width: 250px">
               <p class="card-text">{{ listing.description }}</p>
               <a class="btn btn-primary" href="{% url 'display_listing' listing.id %}" >See Listing</a>
-              {% if watchlist %}
+              {% if request.user.is_authenticated %}
                 {% if listing.id in watchlist %}
                 <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
                 {% else %}

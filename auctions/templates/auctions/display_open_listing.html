@@ -1,0 +1,42 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+  {% include 'auctions/partials/_listing_info.html' %}
+  <h4>Current Leading Bid: ${{ highest_bid }}</h4>
+
+  {% if request.user.is_authenticated %}
+    <form action="{% url 'bid' listing.id %}" method="post">
+      {% csrf_token %}
+      <input type="number" min="{{ highest_bid|add:"1" }}" value="{{ highest_bid|add:"1" }}" step="0.05" name="bid">
+      <input type="submit" value="Place Bid">
+    </form>
+  {% endif %}
+
+  {% include 'auctions/partials/_bids_and_comments.html' %}
+
+  <div class="form-group">
+    <form action="{% url 'comment' listing.id %}" method="post">
+        {% csrf_token %}
+        {{NewCommentForm}}
+        <br>
+        <button type="submit" class="btn btn-success">Save Comment</button>
+    </form>
+  </div>
+
+  {% include 'auctions/partials/_lister_info.html' %}
+
+  {% if request.user.is_authenticated %}
+    {% if listing.id in watchlist %}
+        <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
+    {% else %}
+        <a class="btn btn-primary" href="{% url 'add_to_watchlist' listing.id %}">Add to Watchlist</a>
+    {% endif %}
+    {% if owner %}
+        <a class="btn btn-warning" href="{% url 'close_listing' listing.id %}">Close Listing</a>
+    {% endif %}
+  {% else %}
+    <a class="btn btn-primary" href="{% url 'login' %}">Log In to Place a Bid or Comment</a>
+  {% endif %}
+</div>
+{% endblock %}
