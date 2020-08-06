@@ -15,6 +15,7 @@
 
   {% include 'auctions/partials/_bids_and_comments.html' %}
 
+  {% if request.user.is_authenticated %}
   <div class="form-group">
     <form action="{% url 'comment' listing.id %}" method="post">
         {% csrf_token %}
@@ -23,6 +24,7 @@
         <button type="submit" class="btn btn-success">Save Comment</button>
     </form>
   </div>
+  {% endif %} 
 
   {% include 'auctions/partials/_lister_info.html' %}
 

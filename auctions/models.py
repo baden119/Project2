@@ -15,8 +15,8 @@ class Listing(models.Model):
     BOOKS = 'BK'
     FOOD = 'FD'
     TECHNOLOGY = 'TK'
+    MUSIC = 'MU'
     HOME = 'HM'
-    GIFTS = 'GF'
     AUTO = 'AT'
     OTHER = 'OT'
     CATEGORY_CHOICES = [
@@ -26,8 +26,8 @@ class Listing(models.Model):
         (BOOKS, 'Books, Vinyl and Other Physical Media'),
         (FOOD, 'Groceries, Food and Drinks'),
         (TECHNOLOGY, 'Technology including Phones and Laptops'),
+        (MUSIC, 'Musical Instruments and Accessories'),
         (HOME, 'Home and Furniture'),
-        (GIFTS, 'Flowers and Gifts'),
         (AUTO, 'Vehicles and Automotive'),
         (OTHER, 'Other'),
     ]

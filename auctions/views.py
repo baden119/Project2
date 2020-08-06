@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseRedirect, HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
@@ -30,10 +30,30 @@ def index(request):
         for item in watchlist_data:
             watchlist.append(item.listing.id)
 
-    return render(request, "auctions/index.html", {
-        "listings": Listing.objects.all(),
-        "watchlist": watchlist
-    })
+    if request.method == "POST":
+
+        if request.POST["browse_box"] == "active":
+            listings = Listing.objects.filter(open=True)
+
+        elif request.POST["browse_box"] == "closed":
+            listings = Listing.objects.filter(open=False)
+
+        elif request.POST["browse_box"] == "all":
+            listings = Listing.objects.all()
+
+        else:
+            listings = Listing.objects.filter(category=request.POST["browse_box"]).filter(open=True)
+
+        return render(request, "auctions/index.html", {
+            "listings": listings,
+            "watchlist": watchlist
+        })
+
+    else:
+        return render(request, "auctions/index.html", {
+            "listings": Listing.objects.filter(open=True),
+            "watchlist": watchlist
+        })
 
 def login_view(request):
     if request.method == "POST":
@@ -120,12 +140,6 @@ def display_listing(request, listing_id):
     else:
         highest_bid = listing.starting_bid
 
-    # Get readable name for category of listing.
-    # There must be a better way of doing this, but I dont know it.
-    for category_list in Listing.CATEGORY_CHOICES:
-        if category_list[0] == listing.category:
-            listing.category = category_list[1]
-
     # If a user is logged in, create a list watchlist item id's to send to html.
     # This is used to display either an "add to" or a "remove from" watchlist button.
     # If no user is logged in, no watchlist or bidding options will be displayed.
@@ -206,8 +220,12 @@ def display_watchlist(request):
     for item in watchlist_info:
         watchlist.append(Listing.objects.get(pk=item.listing_id))
 
+    for choice in Listing.CATEGORY_CHOICES:
+        print(choice[1])
+
     return render(request, "auctions/display_watchlist.html", {
-    "watchlist" : watchlist
+    "watchlist" : watchlist,
+    "choices" : Listing.CATEGORY_CHOICES
     })
 
 def bid(request, listing_id):

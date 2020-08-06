@@ -17,8 +17,23 @@
             {% endif %}
         </div>
         <ul class="nav">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
+            <li class ="nav-item">
+              <form action="{% url 'index' %}" method="post">
+                {% csrf_token %}
+                <select name="browse_box" required>
+                  <optgroup label="All listings">
+                    <option value="active">Active listings</option>
+                    <option value="closed">Closed listings</option>
+                    <option value="all">All listings</option>
+                  </optgroup>
+                  <optgroup label="By Category">
+                    {% for category in categories_list %}
+                    <option value="{{ category.0 }}">{{ category.1 }}</option>
+                    {% endfor %}
+                  </optgroup>
+                </select>
+                <input type="submit" value="Go!">
+              </form>
             </li>
             {% if user.is_authenticated %}
                 <li class="nav-item">
@@ -30,6 +45,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'display_watchlist' %}">Watchlist</a>
                 </li>
+
             {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'login' %}">Log In</a>
