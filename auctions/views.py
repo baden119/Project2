@@ -34,25 +34,34 @@ def index(request):
 
         if request.POST["browse_box"] == "active":
             listings = Listing.objects.filter(open=True)
+            heading = "Active Listings"
 
         elif request.POST["browse_box"] == "closed":
             listings = Listing.objects.filter(open=False)
+            heading = "Closed Listings"
 
         elif request.POST["browse_box"] == "all":
             listings = Listing.objects.all()
+            heading = "All Listings"
 
         else:
             listings = Listing.objects.filter(category=request.POST["browse_box"]).filter(open=True)
 
+            for category in Listing.CATEGORY_CHOICES:
+                if request.POST["browse_box"] in category:
+                    heading = category[1]
+
         return render(request, "auctions/index.html", {
             "listings": listings,
-            "watchlist": watchlist
+            "watchlist": watchlist,
+            "heading" : heading
         })
 
     else:
         return render(request, "auctions/index.html", {
             "listings": Listing.objects.filter(open=True),
-            "watchlist": watchlist
+            "watchlist": watchlist,
+            "heading" : "Active Listings"
         })
 
 def login_view(request):

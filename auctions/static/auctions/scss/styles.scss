@@ -1,0 +1,90 @@
+$font-stack: Arial, Helvetica, sans-serif;
+$primary-color: black;
+$secondary-color: #ebeced;
+
+
+html, body {
+  padding: 10px;
+  background-image: url("/static/auctions/full-bloom.png");
+  // font-family: $font-stack;
+  line-height: 1.6;
+  // height: 100%;
+}
+
+.nav{
+  padding: 0;
+  height: 50px;
+  justify-content: space-between;
+  align-items: center;
+  .nav-item{
+    margin: 0px 10px 0px;
+  }
+  .left-side{
+    display: flex;
+    justify-content: flex-start;
+    img{
+      background-color: $secondary-color;
+      height: 60px;
+      padding: 5px ;
+      border: 2px solid $primary-color;
+      border-radius: 100%;
+    }
+    select{
+      font-size: 20px;
+      height: 40px;
+      background-color: $secondary-color;
+      border-radius: 5px;
+      }
+  }
+  .right-side{
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.card{
+  max-height: 85vh;
+  height: 100%;
+  .card-header{
+    text-align: center;
+    font-size: 25px;
+  }
+  .card-image{
+    text-align: center;
+    margin: 10px;
+    .card-img-top{
+      border: solid 2px $primary-color;
+      background-color: $secondary-color;
+      max-height: 30vh;
+      max-width: 40vh;
+      object-fit: contain;
+    }
+  }
+  .card-text{
+    max-height: 25vh;
+    overflow: scroll;
+  }
+}
+
+.listing_info{
+  text-align: center;
+  margin-bottom: 20px;
+  #listing_title{
+    font-size: 40px;
+    margin-bottom: inherit;
+  }
+  .listing_image{
+    background-color: $secondary-color;
+    border-radius: 10px;
+  }
+  #listing_details{
+    margin-bottom: inherit;
+    text-align: left;
+    font-size: 22px;
+    background-color: $secondary-color;
+    // border: solid 2px $primary-color;
+    padding: 10px;
+    border-radius: 10px;
+  }
+}
+/* Check out https://getbootstrap.com/docs/4.0/components/input-group/ */

@@ -3,6 +3,7 @@
 {% block body %}
 <div class="container">
   {% include 'auctions/partials/_listing_info.html' %}
+
   <h4>Current Leading Bid: ${{ highest_bid }}</h4>
 
   {% if request.user.is_authenticated %}
@@ -24,7 +25,7 @@
         <button type="submit" class="btn btn-success">Save Comment</button>
     </form>
   </div>
-  {% endif %} 
+  {% endif %}
 
   {% include 'auctions/partials/_lister_info.html' %}
 

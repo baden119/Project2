@@ -4,23 +4,30 @@
 <html lang="en">
     <head>
         <title>{% block title %}Auctions{% endblock %}</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="{% static 'auctions/styles.css' %}" rel="stylesheet">
-        <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous"> -->
     </head>
     <body>
-        <h1>Auctions</h1>
-        <div>
-            {% if user.is_authenticated %}
-                Signed in as <strong>{{ user.username }}</strong>.
-            {% else %}
-                Not signed in.
-            {% endif %}
-        </div>
         <ul class="nav">
-            <li class ="nav-item">
+          <div class="left-side">
+
+            <li class="nav-item">
+              <a href="{% url 'index' %}"><img src="{% static 'auctions/auction-hammer-icon.png' %}" alt="Auction"</a>
+            </li>
+
+             {% if user.is_authenticated %}
+             <li class ="nav-item">
+               <a class="btn btn-secondary" href="{% url 'new_listing' %}">New Listing</a>
+             </li>
+             {% else %}
+             <li class="nav-item">
+                 <a class="btn btn-warning" href="{% url 'login' %}">Not Logged In </a>
+             </li>
+             {% endif %}
+
               <form action="{% url 'index' %}" method="post">
                 {% csrf_token %}
-                <select name="browse_box" required>
+                <select name="browse_box">
                   <optgroup label="All listings">
                     <option value="active">Active listings</option>
                     <option value="closed">Closed listings</option>
@@ -32,30 +39,36 @@
                     {% endfor %}
                   </optgroup>
                 </select>
-                <input type="submit" value="Go!">
+                <input class="btn btn-secondary" type="submit" value="Go!">
               </form>
-            </li>
+
+          </div> <!--left-side  -->
+
+          <div class="right-side">
             {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                    <a class="btn btn-secondary" href="{% url 'logout' %}">Log Out</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'new_listing' %}">New Listing</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'display_watchlist' %}">Watchlist</a>
+                    <a class="btn btn-secondary" href="{% url 'display_watchlist' %}">Watchlist</a>
                 </li>
 
             {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                    <a class="btn btn-secondary" href="{% url 'login' %}">Log In</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
+                    <a class="btn btn-secondary" href="{% url 'register' %}">Register</a>
                 </li>
             {% endif %}
-        </ul>
-        <hr>
+            <li class="nav-item">
+              {% if user.is_authenticated %}
+              Signed in as <strong>{{ user.username }}</strong>.
+              {% endif %}
+            </li>
+          </div><!-- right-side -->
+        </ul><!-- nav -->
+
         {% block body %}
         {% endblock %}
     </body>

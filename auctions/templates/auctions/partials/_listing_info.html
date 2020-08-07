@@ -1,5 +1,13 @@
-<h1>{{ listing.title }}</h1>
-<h4>{{ listing.get_category_display }}</h4>
-<h3>{{ listing.description }}</h3>
-<img src="{{ listing.image_URL }}" alt="{{ listing.title }}">
-<h4>Starting bid: ${{ listing.starting_bid }}</h4>
+<div class="container">
+  <div class="listing_info">
+    <div id="listing_title">{{ listing.title }}</div>
+    <div class="listing_image">
+      <img src="{{ listing.image_URL }}" alt="{{ listing.title }}">
+    </div>
+    <div id="listing_details">
+      <p>{{ listing.description }}</p>
+      <small>({{ listing.get_category_display }})</small>
+      <h4>Starting bid: ${{ listing.starting_bid }}</h4>
+    </div>
+  </div>
+</div>
