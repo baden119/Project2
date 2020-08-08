@@ -13,8 +13,6 @@
 
   {% include 'auctions/partials/_bids_and_comments.html' %}
 
-  {% include 'auctions/partials/_lister_info.html' %}
-
   {% if request.user.is_authenticated %}
     {% if listing.id in watchlist %}
         <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>

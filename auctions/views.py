@@ -27,6 +27,7 @@ def index(request):
     watchlist = []
     if request.user.is_authenticated:
         watchlist_data = request.user.watchlist.all()
+
         for item in watchlist_data:
             watchlist.append(item.listing.id)
 
@@ -43,6 +44,14 @@ def index(request):
         elif request.POST["browse_box"] == "all":
             listings = Listing.objects.all()
             heading = "All Listings"
+
+        elif request.POST["browse_box"] == "winner":
+            listings = request.user.winner.all()
+            heading = "Listings you've won"
+
+        elif request.POST["browse_box"] == "created":
+            listings = Listing.objects.filter(user = request.user)
+            heading = "Your Listings"
 
         else:
             listings = Listing.objects.filter(category=request.POST["browse_box"]).filter(open=True)
@@ -140,12 +149,12 @@ def new_listing(request):
 def display_listing(request, listing_id):
     # Get listing and bidding data.
     listing = Listing.objects.get(pk=listing_id)
-    bid_info = Bid.objects.filter(listing=listing_id)
+    bid_info = Bid.objects.filter(listing=listing_id).order_by('-bid_datetime')
     comments = Comment.objects.filter(listing=listing_id)
 
     # Determine the highest current bid. Use starting bid if there are no bids.
     if bid_info:
-        highest_bid = (bid_info.last().bid)
+        highest_bid = (bid_info.first().bid)
     else:
         highest_bid = listing.starting_bid
 
@@ -179,7 +188,7 @@ def display_listing(request, listing_id):
 
         # Determine and communicate if current user is auctions winner.
         winner = False
-        if bid_info.last().user_id == request.user.id:
+        if listing.winner == request.user:
             winner = True
         return render(request, "auctions/display_closed_listing.html",{
             "listing": listing,
@@ -203,20 +212,23 @@ def add_to_watchlist(request, listing_id):
         message = "Item Already in Watchlist"
         return redirect("display_listing", listing_id = listing_id)
 
-    # Here I would ideally like to redirect the user back where they came from,
-    # so if they were viewing this particular listing it would take them back to display_listing,
-    # but if they were viewing all listings it would take them to index, but i cant
-    # figure out how to do this.
-    return redirect("index")
+    # HTTP_REFERER is the url where the user was when they made this request,
+    # using this makes it possible to, in most cases, return them to the page
+     # they were on when they clicked the "add to" (or "remove from") watchlist button.
+    return redirect(request.META["HTTP_REFERER"])
 
 def remove_from_watchlist(request, listing_id):
     # Remove item from a users watchlist.
-    request.user.watchlist.get(listing_id = listing_id).delete()
-    # Here I would ideally like to redirect the user back where they came from,
-    # so if they were viewing this particular listing it would take them back to display_listing,
-    # but if they were viewing all listings it would take them to index, but i cant
-    # figure out how to do this.
-    return redirect("index")
+
+    print("dynamic redirect attempt #5")
+    referer = request.META["HTTP_REFERER"]
+    print(referer)
+    try:
+        request.user.watchlist.get(listing_id = listing_id).delete()
+    except DoesNotExist:
+        return redirect(request.META["HTTP_REFERER"])
+
+    return redirect(request.META["HTTP_REFERER"])
 
 def display_watchlist(request):
     # Get watchlist info for current user.
@@ -250,9 +262,21 @@ def bid(request, listing_id):
 
 def close_listing(request, listing_id):
     # Close a listing by changing its open field to False.
+    # Also assign a winner to the listing.
     listing = Listing.objects.get(pk=listing_id)
+    bid_info = Bid.objects.filter(listing=listing_id)
+
+    # If no bids have been placed on an auction at closing,
+    # make the auctions owner the winner
+    if bid_info:
+        listing.winner = bid_info.last().user
+    else:
+        listing.winner = request.user
+
     listing.open = False
+
     listing.save()
+
     return HttpResponseRedirect(reverse("display_listing", args=(listing_id,)))
 
 def comment(request, listing_id):

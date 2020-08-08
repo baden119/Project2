@@ -1,13 +1,11 @@
-<div class="container">
-  <div class="listing_info">
-    <div id="listing_title">{{ listing.title }}</div>
-    <div class="listing_image">
-      <img src="{{ listing.image_URL }}" alt="{{ listing.title }}">
-    </div>
-    <div id="listing_details">
-      <p>{{ listing.description }}</p>
-      <small>({{ listing.get_category_display }})</small>
-      <h4>Starting bid: ${{ listing.starting_bid }}</h4>
-    </div>
+<div class="listing_info">
+  <div id="listing_title">{{ listing.title }}</div>
+  <div class="listing_image">
+    <img src="{{ listing.image_URL }}" alt="{{ listing.title }}">
+  </div>
+  <div id="listing_details">
+    <p>{{ listing.description }}</p>
+    <small>Listed by: {{ listing.user.first_name }} {{ listing.user.last_name }} on {{ listing.listed_datetime }} || {{ listing.get_category_display }}</small>
+    <h4>Starting bid: ${{ listing.starting_bid }}</h4>
   </div>
 </div>

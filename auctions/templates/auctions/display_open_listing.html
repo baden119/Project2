@@ -7,27 +7,32 @@
   <h4>Current Leading Bid: ${{ highest_bid }}</h4>
 
   {% if request.user.is_authenticated %}
-    <form action="{% url 'bid' listing.id %}" method="post">
-      {% csrf_token %}
-      <input type="number" min="{{ highest_bid|add:"1" }}" value="{{ highest_bid|add:"1" }}" step="0.05" name="bid">
-      <input type="submit" value="Place Bid">
-    </form>
+  <form action="{% url 'bid' listing.id %}" method="post">
+    {% csrf_token %}
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text">$</span>
+      </div>
+        <input type="number" min="{{ highest_bid|add:"1" }}" value="{{ highest_bid|add:"1" }}" step="0.05" name="bid">
+    </div>  
+        <input class="btn btn-primary" type="submit" value="Place Bid">
+      </form>
   {% endif %}
 
   {% include 'auctions/partials/_bids_and_comments.html' %}
 
   {% if request.user.is_authenticated %}
-  <div class="form-group">
-    <form action="{% url 'comment' listing.id %}" method="post">
-        {% csrf_token %}
-        {{NewCommentForm}}
-        <br>
-        <button type="submit" class="btn btn-success">Save Comment</button>
-    </form>
+  <div class="container">
+    <div class="form-group">
+      <form action="{% url 'comment' listing.id %}" method="post">
+          {% csrf_token %}
+          {{NewCommentForm}}
+          <br>
+          <button type="submit" class="btn btn-success">Save Comment</button>
+      </form>
+    </div>
   </div>
   {% endif %}
-
-  {% include 'auctions/partials/_lister_info.html' %}
 
   {% if request.user.is_authenticated %}
     {% if listing.id in watchlist %}

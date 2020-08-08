@@ -38,6 +38,7 @@ class Listing(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     image_URL = models.URLField(max_length=200, blank=True)
     open = models.BooleanField(default = True)
+    winner = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="winner")
     category = models.CharField(
         max_length=2,
         choices=CATEGORY_CHOICES,

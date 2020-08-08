@@ -28,11 +28,16 @@
               <form action="{% url 'index' %}" method="post">
                 {% csrf_token %}
                 <select name="browse_box">
-                  <optgroup label="All listings">
+                  <optgroup label="All Listings">
                     <option value="active">Active listings</option>
-                    <option value="closed">Closed listings</option>
                     <option value="all">All listings</option>
                   </optgroup>
+                  {% if user.is_authenticated %}
+                  <optgroup label="Your Listings">
+                    <option value="winner">Listings You've Won</option>
+                    <option value="created">Listings You Created</option>
+                  </optgroup>
+                  {% endif %}
                   <optgroup label="By Category">
                     {% for category in categories_list %}
                     <option value="{{ category.0 }}">{{ category.1 }}</option>
@@ -55,10 +60,10 @@
 
             {% else %}
                 <li class="nav-item">
-                    <a class="btn btn-secondary" href="{% url 'login' %}">Log In</a>
+                    <a class="btn btn-warning" href="{% url 'login' %}">Log In</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-secondary" href="{% url 'register' %}">Register</a>
+                    <a class="btn btn-warning" href="{% url 'register' %}">Register</a>
                 </li>
             {% endif %}
             <li class="nav-item">
