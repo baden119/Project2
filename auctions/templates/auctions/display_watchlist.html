@@ -18,6 +18,8 @@
         </div>
         <div class="card-footer">{{ item.listed_datetime }}</div>
       </div>
+      {% empty %}
+      <p class="announce">No items in watchlist</p>
     {% endfor %}
   </div>
 </div>

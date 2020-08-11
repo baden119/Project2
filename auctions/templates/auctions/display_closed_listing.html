@@ -2,21 +2,22 @@
 
 {% block body %}
 <div class="container">
-  <h1> LISTING CLOSED!!!!!! </h1> <br><br>
-  {% if winner %}
-    <h1> CONGRATULATIONS {{ request.user.first_name }}, YOU WON THE AUCTION! </h1><br><br>
-  {% endif %}
-
-  {% include 'auctions/partials/_listing_info.html' %}
-
-  <h4>Winning Bid: ${{ highest_bid }}</h4>
-
-  {% include 'auctions/partials/_bids_and_comments.html' %}
-
-  {% if request.user.is_authenticated %}
-    {% if listing.id in watchlist %}
-        <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
+  <div class="closed_listing">
+    <h2>LISTING CLOSED</h2>
+    {% if winner %}
+      <h2> Congratulations, {{ request.user.first_name }}!<br>You're the winner!</h2>
     {% endif %}
-  {% endif %}
+  </div>
+    {% include 'auctions/partials/_listing_info.html' %}
+
+    <h4>Winning Bid: ${{ highest_bid }}</h4>
+
+    {% include 'auctions/partials/_bids_and_comments.html' %}
+
+    {% if request.user.is_authenticated %}
+      {% if listing.id in watchlist %}
+          <a class="btn btn-warning" href="{% url 'remove_from_watchlist' listing.id %}">Remove from Watchlist</a>
+      {% endif %}
+    {% endif %}
 </div>
 {% endblock %}

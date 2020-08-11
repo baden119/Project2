@@ -1,16 +1,25 @@
-{% if bid_info %}
-<div class="container">
-  <h5>Bids made:</h5>
-  {% for bid in bid_info %}
-    <small>${{ bid.bid }}, {{ bid.user.first_name }} {{bid.user.last_name}}, {{bid.bid_datetime}} </small>
-    <br>
-  {% endfor %}
+  <div class="col-sm">
+    <h5>Bids made:</h5>
+    {% for bid in bid_info %}
+      <p>${{ bid.bid }}, {{ bid.user.first_name }} {{bid.user.last_name}}, <small>{{bid.bid_datetime}}</small> </p>
+    {% empty %}
+      <p>None yet.</p>
+    {% endfor %}
+  </div>
+</div>
+</div>
+</div>
+
+{% if comments %}
+  <div class="container">
+    <div class="comments">
+      <h3> Comments </h3>
+      <div class="comment_text">
+        {% for comment in comments %}
+        <p>"{{ comment.text }}" <small> ({{ comment.user.first_name }} {{comment.user.last_name}}, {{comment.comment_datetime}})</small></p>
+
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 {% endif %}
-</div>
-<div class="container">
-  <h3> Comments </h3>
-  {% for comment in comments %}
-  <p>{{ comment.text }}</p>
-  <small> by {{ comment.user.first_name }} {{comment.user.last_name}}, {{comment.comment_datetime}}</small>
-  {% endfor %}
-</div>

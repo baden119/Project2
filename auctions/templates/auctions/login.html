@@ -2,6 +2,8 @@
 
 {% block body %}
 <div class"container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-xs-12">
     <h2>Login</h2>
 
     {% if message %}
@@ -19,6 +21,7 @@
         <input class="btn btn-primary" type="submit" value="Login">
     </form>
 
-    Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

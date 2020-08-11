@@ -14,11 +14,11 @@ class NewListingForm(forms.Form):
     title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'class': 'form-control'}))
     category = forms.CharField(label="Category", max_length=2, widget=forms.Select(choices = Listing.CATEGORY_CHOICES, attrs={'class': 'form-control'}))
     description = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Description', 'class': 'form-control'}))
-    starting_bid = forms.DecimalField(max_digits=6, decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '0.00', 'class': 'form-control'}))
+    starting_bid = forms.DecimalField(max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '0.00', 'class': 'form-control'}))
     image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional', 'class': 'form-control'}))
 
 class NewCommentForm(forms.Form):
-    comment = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Comment...', 'class': 'form-control'}))
+    comment = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Leave a comment:', 'class': 'form-control'}))
 
 def index(request):
     # If a user is logged in, create a list of watchlist item id's to send to html.
@@ -33,28 +33,33 @@ def index(request):
 
     if request.method == "POST":
 
+        # These conditional statements deal with the options on the nav-bar drop down, rendering
+        # a version of index.html with various listings and headings. There ought to be a better
+        # way of displaying the newest listings first than repeting ".order_by('-listed_datetime')"
+        # seven times, but that will be a problem for another time.
+
         if request.POST["browse_box"] == "active":
-            listings = Listing.objects.filter(open=True)
+            listings = Listing.objects.filter(open=True).order_by('-listed_datetime')
             heading = "Active Listings"
 
         elif request.POST["browse_box"] == "closed":
-            listings = Listing.objects.filter(open=False)
+            listings = Listing.objects.filter(open=False).order_by('-listed_datetime')
             heading = "Closed Listings"
 
         elif request.POST["browse_box"] == "all":
-            listings = Listing.objects.all()
+            listings = Listing.objects.all().order_by('-listed_datetime')
             heading = "All Listings"
 
         elif request.POST["browse_box"] == "winner":
-            listings = request.user.winner.all()
+            listings = request.user.winner.all().order_by('-listed_datetime')
             heading = "Listings you've won"
 
         elif request.POST["browse_box"] == "created":
-            listings = Listing.objects.filter(user = request.user)
+            listings = Listing.objects.filter(user = request.user).order_by('-listed_datetime')
             heading = "Your Listings"
 
         else:
-            listings = Listing.objects.filter(category=request.POST["browse_box"]).filter(open=True)
+            listings = Listing.objects.filter(category=request.POST["browse_box"]).filter(open=True).order_by('-listed_datetime')
 
             for category in Listing.CATEGORY_CHOICES:
                 if request.POST["browse_box"] in category:
@@ -63,12 +68,12 @@ def index(request):
         return render(request, "auctions/index.html", {
             "listings": listings,
             "watchlist": watchlist,
-            "heading" : heading
+            "heading" : heading,
         })
 
     else:
         return render(request, "auctions/index.html", {
-            "listings": Listing.objects.filter(open=True),
+            "listings": Listing.objects.filter(open=True).order_by('-listed_datetime'),
             "watchlist": watchlist,
             "heading" : "Active Listings"
         })
@@ -137,9 +142,15 @@ def new_listing(request):
             new_listing.user = request.user
             if len(new_listing.image_URL) == 0:
                 new_listing.image_URL = "https://thumbs.dreamstime.com/b/no-image-available-icon-photo-camera-flat-vector-illustration-132483141.jpg"
+
             new_listing.save()
-        # Should I put an else statement here incase form data isn't valid?
-        return HttpResponseRedirect(reverse("index"))
+            return HttpResponseRedirect(reverse("index"))
+
+        # redirect data back if anything fails validation.
+        else:
+            return render(request, "auctions/new_listing.html",{
+            "NewListingForm" : new_listing_data
+            })
 
     else:
         return render(request, "auctions/new_listing.html",{
@@ -150,7 +161,7 @@ def display_listing(request, listing_id):
     # Get listing and bidding data.
     listing = Listing.objects.get(pk=listing_id)
     bid_info = Bid.objects.filter(listing=listing_id).order_by('-bid_datetime')
-    comments = Comment.objects.filter(listing=listing_id)
+    comments = Comment.objects.filter(listing=listing_id).order_by('-comment_datetime')
 
     # Determine the highest current bid. Use starting bid if there are no bids.
     if bid_info:
@@ -220,9 +231,7 @@ def add_to_watchlist(request, listing_id):
 def remove_from_watchlist(request, listing_id):
     # Remove item from a users watchlist.
 
-    print("dynamic redirect attempt #5")
     referer = request.META["HTTP_REFERER"]
-    print(referer)
     try:
         request.user.watchlist.get(listing_id = listing_id).delete()
     except DoesNotExist:
@@ -240,9 +249,6 @@ def display_watchlist(request):
     watchlist = []
     for item in watchlist_info:
         watchlist.append(Listing.objects.get(pk=item.listing_id))
-
-    for choice in Listing.CATEGORY_CHOICES:
-        print(choice[1])
 
     return render(request, "auctions/display_watchlist.html", {
     "watchlist" : watchlist,

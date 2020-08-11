@@ -12,6 +12,14 @@
             </div>
             <div class="card-body">
               <p class="card-text">{{ listing.description }}</p>
+              <p>
+                  Current Bid:
+                {% if listing.bid.last %}
+                  ${{ listing.bid.last.bid }}
+                {% else %}
+                  ${{ listing.starting_bid }}
+                {% endif %}
+              </p>
               <a class="btn btn-primary" href="{% url 'display_listing' listing.id %}" >See Listing</a>
               {% if request.user.is_authenticated %}
                 {% if listing.id in watchlist %}
@@ -21,8 +29,12 @@
                 {% endif %}
               {% endif %}
             </div>
-            <div class="card-footer">{{ listing.listed_datetime }}</div>
+            <div class="card-footer">
+
+            </div>
           </div>
+        {% empty %}
+        <p class="announce">No Lisings to Display</p>
         {% endfor %}
       </div>
     </div>

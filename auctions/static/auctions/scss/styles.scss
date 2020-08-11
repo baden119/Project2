@@ -9,6 +9,11 @@ html, body {
   // font-family: $font-stack;
   line-height: 1.6;
   // height: 100%;
+  h2{
+    margin: 40px;
+    text-align:center;
+    font-size: 43px;
+  }
 }
 
 .nav{
@@ -96,4 +101,43 @@ html, body {
     }
   }
 }
-/* Check out https://getbootstrap.com/docs/4.0/components/input-group/ */
+
+div.col-sm{
+  .bid-box{
+    background-color: $secondary-color;
+    border: solid 2px $primary-color;
+    margin: 10px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+}
+.announce{
+  font-size: 28px;
+  text-align: center;
+}
+.comments{
+  .comment_text{
+    margin: 10px;
+    border-radius: 10px;
+    padding: 5px;
+    font-size: 22px;
+
+  }
+}
+.comment-form{
+  background-color: $secondary-color;
+  margin:30px;
+  border: solid 1px $primary-color;
+  border-radius: 10px;
+  width:80%;
+  padding: 15px 30px 15px;
+  .form-control{
+    font-size: 22px;
+    height: 140px;
+  }
+}
+
+.closed_listing{
+  background-color: pink;
+  border-radius: 10px;
+}

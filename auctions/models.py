@@ -33,10 +33,10 @@ class Listing(models.Model):
     ]
     title = models.CharField(max_length=200)
     description = models.TextField()
-    starting_bid = models.DecimalField(max_digits=6, decimal_places=2)
+    starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
     listed_datetime = models.DateTimeField('date listed')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    image_URL = models.URLField(max_length=200, blank=True)
+    image_URL = models.URLField(blank=True)
     open = models.BooleanField(default = True)
     winner = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="winner")
     category = models.CharField(
@@ -61,7 +61,7 @@ class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bid")
     bid_datetime = models.DateTimeField('date of bid')
-    bid = models.DecimalField(max_digits=6, decimal_places=2)
+    bid = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.listing} - {self.user} - ${self.bid}"

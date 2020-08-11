@@ -52,10 +52,13 @@
           <div class="right-side">
             {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="btn btn-secondary" href="{% url 'logout' %}">Log Out</a>
+                  <button class="btn btn-info">{{ user.first_name }} {{ user.last_name }}</button>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-secondary" href="{% url 'display_watchlist' %}">Watchlist</a>
+                  <a class="btn btn-secondary" href="{% url 'display_watchlist' %}">Watchlist</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-secondary" href="{% url 'logout' %}">Log Out</a>
                 </li>
 
             {% else %}
@@ -66,11 +69,6 @@
                     <a class="btn btn-warning" href="{% url 'register' %}">Register</a>
                 </li>
             {% endif %}
-            <li class="nav-item">
-              {% if user.is_authenticated %}
-              Signed in as <strong>{{ user.username }}</strong>.
-              {% endif %}
-            </li>
           </div><!-- right-side -->
         </ul><!-- nav -->
 
