@@ -11,6 +11,8 @@ from django.urls import reverse
 from .models import User, Listing, Comment, Bid, Watchlist
 
 class NewListingForm(forms.Form):
+    # Model for input fields on the new auction listing form. Called as part of Get request response
+    # in the new_listing view.
     title = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'class': 'form-control'}))
     category = forms.CharField(label="Category", max_length=2, widget=forms.Select(choices = Listing.CATEGORY_CHOICES, attrs={'class': 'form-control'}))
     description = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Description', 'class': 'form-control'}))
@@ -18,10 +20,12 @@ class NewListingForm(forms.Form):
     image_URL = forms.URLField(label="Image URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'Optional', 'class': 'form-control'}))
 
 class NewCommentForm(forms.Form):
+    # Model for the input fields on the comments form that appears when a listing is viewed. Called under
+    # certain conditions of the display_listing view.
     comment = forms.CharField(label="", widget=forms.Textarea(attrs={'placeholder': 'Leave a comment:', 'class': 'form-control'}))
 
 def index(request):
-    # If a user is logged in, create a list of watchlist item id's to send to html.
+    # If a user is logged in, create a list of watchlist item id's to send to html template.
     # This is used to display either an "add to" or a "remove from" watchlist button.
     # If no user is logged in, no watchlist options will be displayed.
     watchlist = []
@@ -129,7 +133,7 @@ def register(request):
 
 def new_listing(request):
     if request.method == "POST":
-        # Validate form data.
+        # Validate new auction listing form data.
         new_listing = Listing()
         new_listing_data = NewListingForm(request.POST)
         if new_listing_data.is_valid():
@@ -146,7 +150,7 @@ def new_listing(request):
             new_listing.save()
             return HttpResponseRedirect(reverse("index"))
 
-        # redirect data back if anything fails validation.
+        # redirect form input data back if anything fails validation.
         else:
             return render(request, "auctions/new_listing.html",{
             "NewListingForm" : new_listing_data
@@ -158,7 +162,7 @@ def new_listing(request):
         })
 
 def display_listing(request, listing_id):
-    # Get listing and bidding data.
+    # Get data for requested listing, including bidding history and comments.
     listing = Listing.objects.get(pk=listing_id)
     bid_info = Bid.objects.filter(listing=listing_id).order_by('-bid_datetime')
     comments = Comment.objects.filter(listing=listing_id).order_by('-comment_datetime')
@@ -169,21 +173,23 @@ def display_listing(request, listing_id):
     else:
         highest_bid = listing.starting_bid
 
-    # If a user is logged in, create a list watchlist item id's to send to html.
+    # If a user is logged in, create a list watchlist item id's to send to html template.
     # This is used to display either an "add to" or a "remove from" watchlist button.
     # If no user is logged in, no watchlist or bidding options will be displayed.
     watchlist = []
+
     owner = False
     if request.user.is_authenticated:
         watchlist_data = request.user.watchlist.all()
         for item in watchlist_data:
             watchlist.append(item.listing.id)
 
-        # Checking if logged-in user is also the owner of current listing.
-        # If so, this allows an option to close the listing.
-        if request.user.id == listing.user.id:
-            owner = True
+    # Check if logged-in user is also the owner of current listing.
+    # If so, allow an option for this user to close the listing.
+    if request.user.id == listing.user.id:
+        owner = True
 
+    # Check whether listing is open or closed, and render appropriate html template.
     if listing.open is True:
         return render(request, "auctions/display_open_listing.html", {
             "listing": listing,
@@ -196,11 +202,11 @@ def display_listing(request, listing_id):
             })
 
     elif listing.open is False:
-
-        # Determine and communicate if current user is auctions winner.
+        # Check if current user is the (closed) auctions winner.
         winner = False
         if listing.winner == request.user:
             winner = True
+
         return render(request, "auctions/display_closed_listing.html",{
             "listing": listing,
             "watchlist": watchlist,
@@ -224,14 +230,13 @@ def add_to_watchlist(request, listing_id):
         return redirect("display_listing", listing_id = listing_id)
 
     # HTTP_REFERER is the url where the user was when they made this request,
-    # using this makes it possible to, in most cases, return them to the page
-     # they were on when they clicked the "add to" (or "remove from") watchlist button.
+    # using this makes it possible to, in most cases, return a user to the page
+    # they were on when they clicked the "add to" (or "remove from") watchlist button.
     return redirect(request.META["HTTP_REFERER"])
 
 def remove_from_watchlist(request, listing_id):
     # Remove item from a users watchlist.
-
-    referer = request.META["HTTP_REFERER"]
+    # See comments above (add_to_watchlist) for info.
     try:
         request.user.watchlist.get(listing_id = listing_id).delete()
     except DoesNotExist:
@@ -252,7 +257,6 @@ def display_watchlist(request):
 
     return render(request, "auctions/display_watchlist.html", {
     "watchlist" : watchlist,
-    "choices" : Listing.CATEGORY_CHOICES
     })
 
 def bid(request, listing_id):
@@ -269,23 +273,22 @@ def bid(request, listing_id):
 def close_listing(request, listing_id):
     # Close a listing by changing its open field to False.
     # Also assign a winner to the listing.
+    # If no bids have been placed on an auction at closing,
+    # make the auctions owner the winner.
     listing = Listing.objects.get(pk=listing_id)
     bid_info = Bid.objects.filter(listing=listing_id)
 
-    # If no bids have been placed on an auction at closing,
-    # make the auctions owner the winner
     if bid_info:
         listing.winner = bid_info.last().user
     else:
         listing.winner = request.user
 
     listing.open = False
-
     listing.save()
-
     return HttpResponseRedirect(reverse("display_listing", args=(listing_id,)))
 
 def comment(request, listing_id):
+    # Record any comments in the Comment model of the database.
     if request.method == "POST":
         new_comment = Comment()
         new_comment_data = NewCommentForm(request.POST)
